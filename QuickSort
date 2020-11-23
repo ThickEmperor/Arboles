@@ -1,0 +1,54 @@
+/**
+ *
+ * @author luise
+ */
+public class Main {
+    public static void main(String[] args) {
+        int arr[] = {15,187,3,21,5,6,48,6,1,38,43,1,64}; 
+        int n = arr.length; 
+  
+        QuickSort qs = new QuickSort(); 
+        qs.sort(arr, 0, n-1); 
+  
+        System.out.println("sorted array"); 
+        printArray(arr); 
+    }
+    static void printArray(int arr[]) 
+    { 
+        int n = arr.length; 
+        for (int i=0; i<n; ++i) 
+            System.out.print(arr[i]+" "); 
+        System.out.println(); 
+    } 
+}
+public class QuickSort {
+     int dividir(int arr[], int low, int high) 
+    { 
+        int pivote = arr[high];  
+        int i = (low-1); 
+        for (int j=low; j<high; j++) 
+        { 
+            if (arr[j] < pivote) 
+            { 
+                i++; 
+                int temp = arr[i]; 
+                arr[i] = arr[j]; 
+                arr[j] = temp; 
+            } 
+        } 
+        int temp = arr[i+1]; 
+        arr[i+1] = arr[high]; 
+        arr[high] = temp; 
+        return i+1; 
+    } 
+    void sort(int arr[], int low, int high) 
+    { 
+        if (low < high) 
+        {
+            int pi = dividir(arr, low, high); 
+            sort(arr, low, pi-1); 
+            sort(arr, pi+1, high); 
+        } 
+    } 
+    
+}
