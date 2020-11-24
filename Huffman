@@ -1,1 +1,323 @@
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
 
+public class Main {
+    public static void main(String[] args) {
+        lista listita = new lista();
+        int[] letras = new int[256];
+        String[] ruta = new String[256];
+        Scanner leer = new Scanner(System.in);
+       
+        System.out.println("Introduzca la dirección del archivo");
+        String direccion = leer.nextLine();
+        
+        try(FileReader file_reader = new FileReader(direccion)){
+            int caracter_leido = file_reader.read();
+            while(caracter_leido!= -1) {
+                char caracter = (char) (caracter_leido);
+                System.out.print(caracter);
+                insertar_caracter(caracter_leido, letras);
+                caracter_leido = file_reader.read();
+            }
+            file_reader.close();
+        }catch(IOException ex){
+            System.err.println("Error al leer el archivo");
+            ex.printStackTrace();
+
+        }
+        for(int i = 0; i <256; i++){
+            if(letras[i]!=0){
+                listita.insertar(letras[i],(char) (i));
+            }
+        }
+        
+        System.out.println("\n");
+        listita.CodigoArbol();
+        System.out.println("\n");
+        arbol arbolito = listita.inicio.arbol;
+        arbolito.ruta(ruta);
+        
+        System.out.println("\nIntroduzca la dirección destino de los archivos");
+        String destino = leer.nextLine(); 
+        
+        try(FileReader file_reader = new FileReader(direccion)){
+            int caracter_leido = file_reader.read();
+            File file = new File(destino);
+            File file2 = new File(destino); 
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            
+            FileWriter fw = new FileWriter(file);
+            BufferedWriter bw = new BufferedWriter(fw);
+            
+            FileWriter fw2 = new FileWriter(file2);
+            BufferedWriter bw2 = new BufferedWriter(fw2);
+            
+            while(caracter_leido!= -1) {
+                char caracter = (char) (caracter_leido);
+                bw.append(ruta[caracter_leido]);
+                caracter_leido = file_reader.read();
+            }
+            
+            for(int i = 0; i<256; i++){
+                if(ruta[i]!=null){
+                    bw2.append((char) (i)+": "+ruta[i]);
+                    bw2.append("\n");
+                }
+            }
+            
+            bw2.close();
+            bw.close();
+            file_reader.close();
+            
+        }catch(IOException ex){
+            System.err.println("Error al leer el archivo");
+            ex.printStackTrace();
+        }
+    }
+    
+    static void insertar_caracter(int ascii, int[] letras){
+        letras[ascii]= letras[ascii]+1; 
+    }           
+    
+}
+
+class lista{
+    NodoLista inicio = null;
+    
+    public void insertar(int dato, char letra){
+        NodoLista nuevo = NuevoNodo(dato, letra);
+        if(vacio()){
+            inicio = nuevo;
+        }else if(inicio.arbol.raiz.frec > nuevo.arbol.raiz.frec){
+            nuevo.sig = inicio;
+            inicio = nuevo;
+        }else{
+            NodoLista ant = null;
+            NodoLista aux = inicio;
+            
+            while(aux != null && aux.arbol.raiz.frec <= nuevo.arbol.raiz.frec){
+                ant = aux;
+                aux = aux.sig;
+            }
+            
+            ant.sig = nuevo;
+            nuevo.sig = aux;            
+        }
+    }
+    
+    public void InsertarArbol(arbol arbl){
+        NodoLista nuevo = NuevoArbol(arbl);
+        
+        if(vacio()){
+            inicio = nuevo;
+        }else if(inicio.arbol.raiz.frec > nuevo.arbol.raiz.frec){
+            nuevo.sig = inicio;
+            inicio = nuevo;
+        }else{
+            NodoLista ant = null;
+            NodoLista aux = inicio;
+            
+            while(aux != null && aux.arbol.raiz.frec <= nuevo.arbol.raiz.frec){
+                ant = aux;
+                aux = aux.sig;
+            }
+            
+            ant.sig = nuevo;
+            nuevo.sig = aux;            
+        }
+    }
+    
+    public arbol combinar(arbol letra1, arbol letra2){
+        if(letra1.raiz == null || letra2.raiz == null){
+            return letra1;
+        }
+        arbol combinado = new arbol();
+        NodoArbolito raiz_combinada = new NodoArbolito();
+        NodoArbolito izq = letra1.raiz;
+        NodoArbolito der = letra2.raiz;
+        
+        raiz_combinada.letra = '^';
+        raiz_combinada.frec = izq.frec + der.frec;
+        raiz_combinada.left = izq;
+        raiz_combinada.rght = der;
+        
+        combinado.InsertarNodo(raiz_combinada);
+        return combinado;
+    }
+    
+    public void CodigoArbol(){
+        if(inicio != null){
+            NodoLista aux1 = inicio;
+            NodoLista aux2 = inicio.sig;
+            
+            while(aux2 != null){
+                arbol arbolito = combinar(aux1.arbol, aux2.arbol);
+                this.InsertarArbol(arbolito);
+                inicio = inicio.sig.sig;
+                aux1 = inicio;
+                aux2 = inicio.sig;
+            }
+        }
+    }
+    
+    public void recorrer(){
+        NodoLista aux = inicio;
+        while( aux != null ){
+            NodoArbolito raiz = aux.arbol.raiz;
+            System.out.print(raiz.letra + ": " + raiz.frec + " ");
+            aux = aux.sig;
+        }
+    }
+    
+    public boolean vacio(){
+        return inicio == null;
+    }
+    
+    public NodoLista NuevoNodo(int dato, char letra){
+        arbol arbolito = new arbol();
+        arbolito.insertar(dato, letra);
+        
+        NodoLista nuevo = new NodoLista();
+        nuevo.arbol = arbolito;
+        nuevo.sig = null;
+        return nuevo;
+    }
+    
+    public NodoLista NuevoArbol(arbol arbolito ){       
+        NodoLista nuevo = new NodoLista();
+        nuevo.arbol = arbolito;
+        nuevo.sig = null;
+        return nuevo;
+    }
+}
+
+class arbol{
+    
+    NodoArbolito raiz = null;
+    public boolean bandera = false;
+    
+    public void insertar(int dato, char letra){
+        NodoArbolito nuevo = crear_nodo(dato, letra);
+        
+        if(raiz == null){
+            raiz = nuevo;
+        }else{
+            NodoArbolito aux  = raiz;
+            NodoArbolito ant = null;
+            while(aux!=null){
+                ant = aux;
+                if(nuevo.frec > aux.frec){
+                    aux = aux.rght;
+                }else{
+                    aux = aux.left;
+                }    
+            }
+            if(nuevo.frec > ant.frec){
+                ant.rght = nuevo;
+            }else{
+                ant.left = nuevo;
+            }
+        }
+    }
+    
+    public void ruta(String[] ruta){
+        InOrden(raiz, "", "", ruta);
+    }
+
+    public void InOrden(NodoArbolito aux, String ruta, String num, String[] rutas){
+        ruta = ruta+num;
+        if (aux != null) {
+            InOrden(aux.left, ruta, "0", rutas);
+            InOrden(aux.rght, ruta, "1", rutas);
+            if(aux.rght==null&&aux.left==null){
+                rutas[(int) (aux.letra)]= ruta; 
+            }
+        } 
+        
+    }
+    
+    public void InsertarNodo(NodoArbolito nuevo){
+        raiz = nuevo;
+    }
+    
+    public NodoArbolito crear_nodo(int dato, char letra){
+        NodoArbolito nuevo = new NodoArbolito();
+        nuevo.letra = letra;
+        nuevo.frec = dato;
+        nuevo.left = null;
+        nuevo.rght = null;
+        
+        return nuevo;
+    }
+    
+}
+
+class cola{
+    
+    NodoCOla inicio = null;
+    NodoCOla fin = null;
+    
+    public NodoCOla crear_nodo(NodoArbolito dato){
+        NodoCOla nuevo = new NodoCOla();
+        nuevo.prev = null;
+        nuevo.sig = null;
+        nuevo.dato = dato;
+        return nuevo;
+    }
+    
+
+    public void meter(NodoArbolito dato){
+        NodoCOla nuevo = crear_nodo(dato);
+        if(vacio()){
+            inicio = nuevo;
+            fin = nuevo;
+        }
+        else{
+            nuevo.prev = fin;
+            fin.sig = nuevo;
+            fin = nuevo;
+        }
+    }
+    
+
+    public NodoArbolito sacar(){
+        NodoArbolito resultado = inicio.dato;
+        if(inicio == fin){
+            inicio = null;
+            fin = null;
+        }else{
+            inicio = inicio.sig;
+            inicio.prev = null;
+        }
+        
+        return resultado;
+    }
+    
+    public boolean vacio(){
+        return (inicio == null) && (fin == null);
+    }
+}
+
+class NodoLista{
+    arbol arbol;
+    NodoLista sig;
+}
+
+class NodoArbolito{
+    int frec;
+    char letra;
+    NodoArbolito left;
+    NodoArbolito rght;
+}
+
+class NodoCOla{
+    NodoArbolito dato;
+    NodoCOla prev;
+    NodoCOla sig;
+}
