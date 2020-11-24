@@ -1,69 +1,133 @@
+import java.util.Random;
+
 /**
  *
  * @author luise
  */
 public class Main {
     public static void main(String[] args) {
-        int arr[] = {6,5,4,5,5,61,5,3,11,71,61,641,618,484}; 
-        int n = arr.length; 
+        Radix Rx = new Radix();
         
-        Radix rx = new Radix();
-            
-        rx.radixsort(arr, n); 
-        rx.print(arr, n); 
+        for(int i = 0; i < 1000001; ++i)
+        {
+            Random rng = new Random();
+            int valorDado = rng.nextInt(100001); 
+            Rx.insertar(valorDado);
+        }
+        
+        System.out.print("Números: ");
+        Rx.recorrer();
+        System.out.println("\n");
+        
+        System.out.print("Números ordenados: ");
+        Rx.radixSort();
+        Rx.recorrer();
     }
 }
+/**
+ *
+ * @author luise
+ */
 import java.util.Arrays; 
 public class Radix {
-    static int maximo(int arr[], int n) 
-    { 
-        int max = arr[0]; 
-        for (int i = 1; i < n; i++) 
+    Nodo inicio = null;
+    
+     public boolean ordenado(Nodo raiz)
+    {
+        while(raiz.siguiente != null)
         {
-            if (arr[i] > max) 
-            {
-                max = arr[i]; 
+            if(raiz.dato > raiz.siguiente.dato) return false;
+            raiz = raiz.siguiente;
+        }
+        return true;
+        
+    }
+    public void radixSort()
+    {
+        int digitos = num_digitos(this.inicio);
+        int exp = 1;
+        Nodo aux = this.inicio;
+        Radix ordenada = new Radix();
+        Radix valores[] = new Radix[10];
+        
+        for(int i = 0; i < digitos; ++i)
+        {
+            Radix temp = new Radix();
+            while(aux != null){
+                int posicion = (aux.dato / exp) % 10;
+                if(valores[posicion] == null){
+                    valores[posicion] = new Radix();
+                }
+                valores[posicion].insertar(aux.dato);
+                aux = aux.siguiente;
             }
+            for(int j = 0; j < 10; ++j)
+            {
+                while(valores[j] != null && valores[j].inicio != null)
+                {
+                    temp.insertar(valores[j].inicio.dato);
+                    valores[j].inicio = valores[j].inicio.siguiente;
+                }
+            }
+            exp *= 10;
+            aux = temp.inicio;
         }
-        return max; 
-    } 
-    static void countSort(int arr[], int n, int exp) 
-    { 
-        int output[] = new int[n];
-        int i; 
-        int count[] = new int[10]; 
-        Arrays.fill(count, 0); 
-        for (i = 0; i < n; i++)
+        while(aux != null)
         {
-            count[(arr[i] / exp) % 10]++; 
+            ordenada.insertar(aux.dato);
+            aux = aux.siguiente;
         }
-        for (i = 1; i < 10; i++) 
+        
+        inicio = ordenada.inicio;
+    }
+    public void recorrer()
+    {
+        Nodo aux = inicio;
+        while( aux != null )
         {
-            count[i] += count[i - 1]; 
+            System.out.print(aux.dato + " ");
+            aux = aux.siguiente;
         }
-        for (i = n - 1; i >= 0; i--)
-        { 
-            output[count[(arr[i] / exp) % 10] - 1] = arr[i]; 
-            count[(arr[i] / exp) % 10]--; 
-        } 
-        for (i = 0; i < n; i++) 
+    }
+    public boolean isEmpty()
+    {
+        return inicio == null;
+    }
+    public void insertar(int dato)
+    {
+        Nodo nuevo = nuevoNodo(dato);
+        if(!isEmpty())
         {
-            arr[i] = output[i]; 
+            nuevo.siguiente = inicio;
         }
-    } 
-    static void radixsort(int arr[], int n) 
-    { 
-        int m = maximo(arr, n); 
-        for (int exp = 1; m / exp > 0; exp *= 10) 
+        inicio = nuevo;
+    }
+    public Nodo nuevoNodo(int dato)
+    {
+        Nodo nuevo = new Nodo();
+        nuevo.dato = dato;
+        nuevo.siguiente = null;
+        return nuevo;
+    }
+    public int num_digitos(Nodo raiz){
+        int max = raiz.dato;
+        int digitos = 0;
+        while(raiz != null)
         {
-            countSort(arr, n, exp); 
+            if(raiz.dato > max) max = raiz.dato;
+            raiz = raiz.siguiente;
         }
-    } 
-    static void print(int arr[], int n) 
-    { 
-        for (int i = 0; i < n; i++) 
+        
+        while(max != 0)
         {
-            System.out.print(arr[i] + " "); 
-        }
-    } 
+            max /= 10;
+            digitos++;
+        }      
+        return digitos;
+    }
+}
+public class Nodo {
+    int dato;
+    Nodo siguiente;
+    
 }
